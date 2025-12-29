@@ -104,6 +104,20 @@ fscreen.addEventListener('fullscreenchange', () => {
     store.setState({ fullscreen: isFullscreen() });
 });
 
+// Auto fullscreen on first user interaction (click/touch)
+let hasAutoFullscreened = false;
+function autoFullscreen() {
+    if (!hasAutoFullscreened && fullscreenEnabled() && !isFullscreen()) {
+        fscreen.requestFullscreen(document.documentElement);
+        hasAutoFullscreened = true;
+    }
+    // Remove listeners after first use
+    document.removeEventListener('click', autoFullscreen);
+    document.removeEventListener('touchstart', autoFullscreen);
+}
+
+document.addEventListener('click', autoFullscreen);
+document.addEventListener('touchstart', autoFullscreen);
 
 
 
@@ -117,7 +131,7 @@ const store = {
     state: {
         // will be unpaused in init()
         paused: true,
-        soundEnabled: false,
+        soundEnabled: true,
         menuOpen: false,
         openHelpTopic: null,
         fullscreen: isFullscreen(),
@@ -130,9 +144,9 @@ const store = {
                 '3' // Desktop default
                 :
                 IS_HEADER ?
-                '1.2' // Profile header default (doesn't need to be an int)
-                :
-                '2', // Mobile default
+                    '1.2' // Profile header default (doesn't need to be an int)
+                    :
+                    '2', // Mobile default
             autoLaunch: true,
             finale: false,
             skyLighting: SKY_LIGHT_NORMAL + '',
@@ -836,7 +850,7 @@ function init() {
     // 0.9 is mobile default
     setOptionsForSelect(
         appNodes.scaleFactor, [0.5, 0.62, 0.75, 0.9, 1.0, 1.5, 2.0]
-        .map(value => ({ value: value.toFixed(2), label: `${value*100}%` }))
+            .map(value => ({ value: value.toFixed(2), label: `${value * 100}%` }))
     );
 
     // Begin simulation
@@ -1401,7 +1415,7 @@ function render(speed) {
     // Draw stars
     trailsCtx.lineWidth = Star.drawWidth;
     trailsCtx.lineCap = isLowQuality ? 'square' : 'round';
-    mainCtx.strokeStyle = '#fff'; 
+    mainCtx.strokeStyle = '#fff';
     mainCtx.lineWidth = 1;
     mainCtx.beginPath();
     COLOR_CODES.forEach(color => {
@@ -2088,7 +2102,7 @@ const Spark = {
 
 const soundManager = {
     baseURL: 'https://s3-us-west-2.amazonaws.com/s.cdpn.io/329180/',
-    ctx: new(window.AudioContext || window.webkitAudioContext),
+    ctx: new (window.AudioContext || window.webkitAudioContext),
     sources: {
         lift: {
             volume: 1,
