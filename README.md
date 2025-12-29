@@ -9,9 +9,7 @@ Hệ thống tạo trang sinh nhật đẹp mắt với hiệu ứng đặc bi�
 - 🔗 Chia sẻ link dễ dàng
 - 💾 Lưu trữ localStorage - không cần server
 
-## 🚀 Demo
-- [🔗 Live Demo](https://phamtheson2807.github.io/hpbd/) 
-- [📺 GitHub Repository](https://github.com/phamtheson2807/hpbd)
+
 
 ## ✨ Tính năng chính
 - ✅ **Hoàn thành** và sẵn sàng sử dụng
