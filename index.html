@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Trang Sinh Nhật</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="css/index.css">
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-birthday-cake"></i> Tạo Trang Sinh Nhật</h1>
+            <p>Tạo trang sinh nhật đặc biệt với hiệu ứng đẹp mắt và lời chúc ý nghĩa</p>
+        </div>
+
+        <form id="birthdayForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="name"><i class="fas fa-user"></i> Tên người sinh nhật:</label>
+                    <div class="input-wrapper">
+                        <input type="text" id="name" name="name" required placeholder="Nhập tên...">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="age"><i class="fas fa-calendar-alt"></i> Tuổi:</label>
+                    <div class="input-wrapper">
+                        <input type="number" id="age" name="age" min="1" max="120" required placeholder="Nhập tuổi...">
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="date"><i class="fas fa-calendar-day"></i> Ngày sinh (DD.MM.YY):</label>
+                <div class="input-wrapper">
+                    <input type="text" id="date" name="date" required pattern="\d{2}\.\d{2}\.\d{2}"
+                        placeholder="28.07.03">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="title"><i class="fas fa-heading"></i> Tiêu đề trang:</label>
+                <div class="input-wrapper">
+                    <input type="text" id="title" name="title" required placeholder="Chúc mừng sinh nhật">
+                </div>
+            </div>
+
+            <div class="wishes-section">
+                <div class="wishes-header">
+                    <h3><i class="fas fa-heart"></i> Lời chúc sinh nhật</h3>
+                    <button type="button" onclick="clearAllData()"
+                        style="background: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 8px; cursor: pointer; font-size: 0.9rem;">
+                        <i class="fas fa-trash"></i> Xóa hết dữ liệu
+                    </button>
+                </div>
+                <div id="wishesList" class="wishes-list"></div>
+                <button type="button" class="add-wish-btn" onclick="addWish()">
+                    <i class="fas fa-plus"></i> Thêm lời chúc
+                </button>
+            </div>
+
+            <button type="submit" class="submit-btn">
+                <i class="fas fa-magic"></i> Tạo Trang Sinh Nhật
+            </button>
+        </form>
+
+        <div id="result" class="result" style="display:none;">
+            <h3><i class="fas fa-check-circle"></i> Thành công!</h3>
+            <div id="result-content"></div>
+        </div>
+    </div>
+    <script src="js/index.js"></script>
+</body>
+
+</html>

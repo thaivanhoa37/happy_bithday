@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Happy Birthday</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/home.css">
+</head>
+
+<body>
+    <!-- Overlay yêu cầu xoay ngang điện thoại -->
+    <div class="rotate-overlay" id="rotateOverlay">
+        <div class="rotate-content">
+            <div class="rotate-icon">📱</div>
+            <div class="rotate-arrow">↻</div>
+            <p>Vui lòng xoay ngang điện thoại<br>để xem nội dung</p>
+        </div>
+    </div>
+
+    <canvas id="rainCanvas"></canvas>
+
+    <!-- Audio Element -->
+    <audio id="backgroundMusic" loop preload="auto"></audio>
+
+    <!-- Music Control -->
+    <div class="music-control" id="musicControl">
+        <i class="fas fa-music"></i>
+        <span id="musicStatus">Nhạc đang phát</span>
+    </div>
+
+    <!-- Tap Instruction -->
+    <div class="tap-instruction" id="tapInstruction">
+        <i class="fas fa-hand-pointer"></i><br>
+        Chạm vào màn hình để phát nhạc
+    </div>
+
+    <!-- Floating Elements -->
+    <div class="snowflakes" id="snowflakes"></div>
+
+    <script src="js/home.js"></script>
+    <script src="js/home-animation.js"></script>
+    <script src="js/home-effects.js"></script>
+</body>
+
+</html>

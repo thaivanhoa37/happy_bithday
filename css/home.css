@@ -1,0 +1,344 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientAnimation 15s ease infinite;
+    font-family: Arial, sans-serif;
+}
+
+body.body--ready {
+    color: #fff;
+}
+
+img#logo {
+    width: 128px;
+    background-size: cover;
+    border-radius: 200px;
+    box-shadow: 0px 0px 40px rgba(63, 81, 181, 0.72);
+    border: 3px solid #00a0ff;
+    opacity: 1;
+    margin: 0 auto;
+    margin-top: 20px;
+    margin-bottom: 20px;
+    transition: all 1.0s;
+}
+
+#logo:hover {
+    box-shadow: 0 0 10px #fff;
+    -webkit-box-shadow: 0 0 19px #fff;
+    transform: rotate(360deg);
+    -ms-transform: rotate(360deg);
+    -moz-transform: rotate(360deg);
+    -webkit-transform: rotate(360deg);
+    -o-transform: rotate(360deg);
+    filter: progid:DXImageTransform.Microsoft.BasicImage(rotation=3);
+}
+
+.cs {
+    width: 100%;
+    height: 100%;
+    margin: 0 auto;
+    position: absolute;
+    text-align: center;
+}
+
+.canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+}
+
+.text {
+    position: fixed;
+    bottom: 20px;
+    text-align: center;
+    width: 100%;
+    font-weight: bold;
+}
+
+.text-right {
+    position: fixed;
+    bottom: 50px;
+    text-align: right;
+    width: 100%;
+    font-weight: bold;
+}
+
+.music-control {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    border-radius: 50px;
+    padding: 10px 15px;
+    color: white;
+    font-size: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.music-control:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.05);
+}
+
+.music-control.playing {
+    display: flex;
+}
+
+.tap-instruction {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px;
+    font-size: 18px;
+    text-align: center;
+    z-index: 1001;
+    animation: pulse 2s infinite;
+    display: none;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 0.8;
+        transform: translate(-50%, -50%) scale(1);
+    }
+
+    50% {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1.05);
+    }
+}
+
+@keyframes gradientAnimation {
+    0% {
+        background-position: 0% 0%;
+    }
+
+    25% {
+        background-position: 100% 0%;
+    }
+
+    50% {
+        background-position: 100% 100%;
+    }
+
+    75% {
+        background-position: 0% 100%;
+    }
+
+    100% {
+        background-position: 0% 0%;
+    }
+}
+
+@keyframes snowfall {
+    0% {
+        transform: translateY(-100vh) rotate(0deg);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+@keyframes sparkleAnimation {
+
+    0%,
+    100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scale(1.5) rotate(180deg);
+        opacity: 0.5;
+    }
+}
+
+.snowflakes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.snowflake {
+    position: absolute;
+    color: rgba(255, 105, 180, 0.8);
+    font-size: 1em;
+    animation: snowfall linear infinite;
+    text-shadow: 0 0 10px rgba(255, 105, 180, 0.8);
+}
+
+@keyframes floatUp {
+    0% {
+        transform: translateY(100vh) rotate(0deg);
+        opacity: 0;
+    }
+
+    10% {
+        opacity: 1;
+    }
+
+    90% {
+        opacity: 1;
+    }
+
+    100% {
+        transform: translateY(-100vh) rotate(360deg);
+        opacity: 0;
+    }
+}
+
+.box {
+    width: 100%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    flex-direction: column;
+}
+
+.heart-text {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #FF1493;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    z-index: 6;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 10px rgba(255, 20, 147, 0.5);
+    font-family: Arial, sans-serif;
+    max-width: 300px;
+    line-height: 1.4;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* ============ OVERLAY YÊU CẦU XOAY NGANG ============ */
+.rotate-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    z-index: 9999;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.rotate-content {
+    text-align: center;
+    color: white;
+    animation: pulse-rotate 2s ease-in-out infinite;
+}
+
+.rotate-icon {
+    font-size: 80px;
+    margin-bottom: 20px;
+    animation: rotate-phone 2s ease-in-out infinite;
+}
+
+.rotate-arrow {
+    font-size: 50px;
+    color: #FF69B4;
+    margin-bottom: 20px;
+    animation: spin-arrow 1.5s linear infinite;
+}
+
+.rotate-content p {
+    font-size: 20px;
+    line-height: 1.6;
+    color: #fff;
+    text-shadow: 0 2px 10px rgba(255, 105, 180, 0.5);
+}
+
+@keyframes rotate-phone {
+
+    0%,
+    100% {
+        transform: rotate(0deg);
+    }
+
+    25% {
+        transform: rotate(-15deg);
+    }
+
+    75% {
+        transform: rotate(90deg);
+    }
+}
+
+@keyframes spin-arrow {
+    0% {
+        transform: rotate(0deg);
+        opacity: 0.5;
+    }
+
+    50% {
+        transform: rotate(180deg);
+        opacity: 1;
+    }
+
+    100% {
+        transform: rotate(360deg);
+        opacity: 0.5;
+    }
+}
+
+@keyframes pulse-rotate {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.05);
+    }
+}
+
+/* Hiển thị overlay khi điện thoại ở chế độ DỌC */
+@media screen and (max-width: 768px) and (orientation: portrait) {
+    .rotate-overlay {
+        display: flex !important;
+    }
+}
