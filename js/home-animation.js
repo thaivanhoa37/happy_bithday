@@ -138,4 +138,31 @@ S.Shape = (function () {
     };
 }());
 
-S.init();
+// Chờ Firebase data load xong trước khi bắt đầu animation
+function waitForFirebaseAndStart() {
+    // Nếu có shortId trong URL, chờ Firebase load
+    const urlParams = new URLSearchParams(window.location.search);
+    const hasId = urlParams.get('id');
+
+    if (hasId && window.db) {
+        // Chờ tối đa 3 giây cho Firebase
+        let attempts = 0;
+        const maxAttempts = 30;
+
+        const checkData = setInterval(() => {
+            attempts++;
+            // Kiểm tra xem customData đã được cập nhật chưa (tên khác mặc định)
+            if (customData.name !== 'Người đặc biệt ❤️' || attempts >= maxAttempts) {
+                clearInterval(checkData);
+                console.log('[Animation] Bắt đầu animation với dữ liệu:', customData);
+                S.init();
+            }
+        }, 100);
+    } else {
+        // Không có ID, chạy ngay với dữ liệu mặc định
+        S.init();
+    }
+}
+
+waitForFirebaseAndStart();
+
