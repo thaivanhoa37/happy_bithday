@@ -240,6 +240,29 @@ function addFireworkImageUrl() {
     }, 100);
 }
 
+// Chuyển đổi link Google Drive/Dropbox thành link ảnh trực tiếp
+function convertToDirectImageUrl(url) {
+    if (!url) return url;
+
+    // Google Drive: https://drive.google.com/file/d/FILE_ID/view... -> https://drive.google.com/uc?export=view&id=FILE_ID
+    const driveMatch = url.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]+)/);
+    if (driveMatch) {
+        return `https://drive.google.com/uc?export=view&id=${driveMatch[1]}`;
+    }
+
+    // Google Drive uc link (đã đúng format)
+    if (url.includes('drive.google.com/uc')) {
+        return url;
+    }
+
+    // Dropbox: thay dl=0 thành raw=1
+    if (url.includes('dropbox.com')) {
+        return url.replace('dl=0', 'raw=1').replace('www.dropbox.com', 'dl.dropboxusercontent.com');
+    }
+
+    return url;
+}
+
 function handleImageUpload(event) {
     const files = event.target.files;
     if (!files.length) return;
@@ -280,12 +303,14 @@ async function saveFireworkData() {
         if (val.length > 0 && val !== '[Ảnh đã tải lên]') filteredWishes.push(val);
     });
 
-    // Lấy ảnh URL (không lấy base64)
-    const filteredImages = fireworkImages.filter(img => {
-        if (!img || img.trim().length === 0) return false;
-        if (img.startsWith('data:image')) return false; // Bỏ qua base64
-        return true;
-    });
+    // Lấy ảnh URL (không lấy base64) và chuyển đổi link Google Drive
+    const filteredImages = fireworkImages
+        .filter(img => {
+            if (!img || img.trim().length === 0) return false;
+            if (img.startsWith('data:image')) return false; // Bỏ qua base64
+            return true;
+        })
+        .map(img => convertToDirectImageUrl(img)); // Chuyển đổi link Google Drive
 
     if (filteredWishes.length === 0 && filteredImages.length === 0) {
         alert('Vui lòng thêm ít nhất 1 lời chúc hoặc 1 URL ảnh!');
