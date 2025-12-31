@@ -3314,3 +3314,87 @@ if (IS_HEADER) {
 		});
 	}, 0);
 }
+
+// ============ FULLSCREEN FUNCTIONALITY ============
+const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+let hasTriggeredFullscreen = false;
+
+function enterFireworkFullscreen() {
+	if (hasTriggeredFullscreen) return;
+
+	const elem = document.documentElement;
+	if (elem.requestFullscreen) {
+		elem.requestFullscreen().catch(err => console.log('Fullscreen failed:', err));
+	} else if (elem.webkitRequestFullscreen) {
+		elem.webkitRequestFullscreen();
+	} else if (elem.msRequestFullscreen) {
+		elem.msRequestFullscreen();
+	}
+
+	hasTriggeredFullscreen = true;
+	showExitHint();
+
+	// Resume audio context if needed
+	if (soundManager.ctx && soundManager.ctx.state === 'suspended') {
+		soundManager.ctx.resume();
+	}
+}
+
+function showExitHint() {
+	// Xóa hint cũ nếu có
+	const oldHint = document.querySelector('.exit-hint');
+	if (oldHint) oldHint.remove();
+
+	// Tạo style cho hint
+	if (!document.querySelector('#fullscreen-style')) {
+		const style = document.createElement('style');
+		style.id = 'fullscreen-style';
+		style.textContent = `
+            .exit-hint {
+                position: fixed;
+                bottom: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0,0,0,0.6);
+                color: #fff;
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-family: Arial, sans-serif;
+                font-size: 13px;
+                z-index: 9999;
+                opacity: 0;
+                transition: opacity 0.5s ease;
+                pointer-events: none;
+                user-select: none;
+            }
+            .exit-hint.show {
+                opacity: 1;
+            }
+        `;
+		document.head.appendChild(style);
+	}
+
+	const hint = document.createElement('div');
+	hint.className = 'exit-hint';
+	hint.textContent = isMobileDevice ? '👆 Chạm liên tiếp để tương tác' : 'Nhấn F11 hoặc ESC để thoát';
+	document.body.appendChild(hint);
+
+	// Hiển thị hint
+	requestAnimationFrame(() => hint.classList.add('show'));
+
+	// Ẩn sau 4 giây
+	setTimeout(() => {
+		hint.classList.remove('show');
+		setTimeout(() => hint.remove(), 500);
+	}, 4000);
+}
+
+// Lắng nghe sự kiện để kích hoạt fullscreen
+document.addEventListener('click', enterFireworkFullscreen);
+document.addEventListener('touchstart', enterFireworkFullscreen);
+document.addEventListener('keydown', (e) => {
+	// Cho phép thoát bằng ESC (mặc định trình duyệt hỗ trợ, nhưng log lại nếu cần)
+	if (e.key === 'Escape') {
+		console.log('User exited fullscreen');
+	}
+});
