@@ -2,7 +2,8 @@
 const urlParams = new URLSearchParams(window.location.search);
 const shortId = urlParams.get('id');
 
-let customData = {
+// Global variable for animation script to access
+window.customData = {
     name: 'Người đặc biệt ❤️',
     age: '22',
     date: '01.01.00',
@@ -12,21 +13,46 @@ let customData = {
     music: null
 };
 
-// Đọc dữ liệu từ localStorage
+// Đọc dữ liệu từ Firebase
 if (shortId) {
-    const storedData = localStorage.getItem(`birthday_${shortId}`);
-    if (storedData) {
-        const parsedData = JSON.parse(storedData);
-        customData = {
-            name: parsedData.name || customData.name,
-            age: parsedData.age || customData.age,
-            date: parsedData.date || customData.date,
-            title: parsedData.title || customData.title,
-            wishes: parsedData.wishes || [],
-            fireworkLink: parsedData.fireworkLink || null,
-            music: parsedData.music || null
-        };
-        console.log('[Home] Đã tải dữ liệu từ localStorage:', customData);
+    console.log('[Home] Loading data from Firebase for:', shortId);
+
+    // Sử dụng dbRef từ window.db
+    window.db.ref('birthdays/' + shortId).once('value')
+        .then((snapshot) => {
+            const data = snapshot.val();
+            if (data) {
+                customData = {
+                    name: data.name || customData.name,
+                    age: data.age || customData.age,
+                    date: data.date || customData.date,
+                    title: data.title || customData.title,
+                    wishes: data.wishes || [],
+                    fireworkLink: data.fireworkLink || null,
+                    music: data.music || null
+                };
+                console.log('[Home] Loaded data:', customData);
+
+                // Cập nhật UI ngay sau khi load xong
+                document.title = customData.title;
+
+                // Update letter button link
+                if (customData.fireworkLink) {
+                    const btn = document.getElementById('letterBtn');
+                    if (btn) btn.href = customData.fireworkLink;
+                }
+            } else {
+                console.warn('[Home] No data found for ID:', shortId);
+            }
+        })
+        .catch((error) => {
+            console.error('[Home] Error loading data:', error);
+        });
+} else {
+    // Fallback localStorage for testing without ID
+    const localData = localStorage.getItem('birthday_test');
+    if (localData) {
+        customData = JSON.parse(localData);
     }
 }
 

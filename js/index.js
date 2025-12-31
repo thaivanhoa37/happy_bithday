@@ -86,14 +86,20 @@ document.getElementById('birthdayForm').addEventListener('submit', function (e) 
     // Lấy link pháo hoa (nếu có)
     const fireworkLink = document.getElementById('fireworkLink').value.trim();
 
-    // Lưu vào localStorage đúng cấu trúc home.html
-    const data = { name, age, date, title, wishes: wishesFiltered, fireworkLink: fireworkLink || null };
+    // Lưu vào Firebase
+    const data = { name, age, date, title, wishes: wishesFiltered, fireworkLink: fireworkLink || null, createdAt: Date.now() };
     console.log('Data to save:', data);
-    localStorage.setItem(`birthday_${shortId}`, JSON.stringify(data));
 
-    // Test đọc lại để đảm bảo đã lưu đúng
-    const savedData = JSON.parse(localStorage.getItem(`birthday_${shortId}`));
-    console.log('Saved data verification:', savedData);
+    // Sử dụng window.db đã khởi tạo trong HTML
+    window.db.ref('birthdays/' + shortId).set(data)
+        .then(() => {
+            console.log('[Firebase] Saved data successfully');
+        })
+        .catch((error) => {
+            console.error('[Firebase] Save failed', error);
+            alert('Lỗi lưu dữ liệu lên Firebase! Vui lòng thử lại.');
+            return;
+        });
 
     // Xóa lời chúc tạm thời sau khi tạo thành công
     localStorage.removeItem('current_wishes');
