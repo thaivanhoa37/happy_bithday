@@ -1,86 +1,112 @@
-# Birthday Page Generator 🎂
+# 🎉 Happy Birthday & New Year 2025 🎆
 
-## 📖 Mô tả
-Hệ thống tạo trang sinh nhật đẹp mắt với hiệu ứng đặc biệt:
-- 🎂 Form tạo trang sinh nhật dễ sử dụng
-- 💝 Lời chúc tùy chỉnh 
-- 🎆 Hiệu ứng pháo hoa và animation
-- 📱 Responsive design cho mọi thiết bị
-- 🔗 Chia sẻ link dễ dàng
-- 💾 Lưu trữ localStorage - không cần server
+Tạo trang chúc mừng sinh nhật và pháo hoa năm mới với hiệu ứng đẹp mắt!
 
+![Demo](https://img.shields.io/badge/Demo-Live-brightgreen)
+![Firebase](https://img.shields.io/badge/Firebase-Realtime%20Database-orange)
+![Vercel](https://img.shields.io/badge/Deploy-Vercel-black)
 
+## ✨ Tính năng
 
-## ✨ Tính năng chính
-- ✅ **Hoàn thành** và sẵn sàng sử dụng
-- 💾 Lưu trữ trên trình duyệt (localStorage)
-- 📏 Không cần server hay database
--  **Phù hợp**: Sử dụng cá nhân, demo nhanh, chia sẻ local
+### 🎂 Trang Sinh Nhật
+- Tạo trang sinh nhật cá nhân hóa
+- Thêm tên, tuổi, ngày sinh
+- Thêm nhiều lời chúc tùy ý
+- Hiệu ứng animation đẹp mắt
+- Trái tim + nhạc nền
 
-## 🛠️ Cài đặt
+### 🎆 Trang Pháo Hoa Năm Mới
+- Pháo hoa 3D tuyệt đẹp
+- Tùy chỉnh lời chúc năm mới
+- Thêm ảnh riêng (từ URL)
+- Ảnh hiển thị khi pháo nổ
+- Tự động fullscreen
 
-### Sử dụng ngay
-```bash
-1. Tải về index.html và home.html
-2. Mở index.html trong trình duyệt
-3. Tạo trang sinh nhật
-4. Chia sẻ link home.html?id=xxx
+### 🔗 Chia sẻ dễ dàng
+- Lưu trữ trên **Firebase** - share được mọi nơi
+- Link ngắn gọn với ID duy nhất
+- Ai mở link cũng thấy cùng nội dung
+
+## 🚀 Demo
+
+**Live Demo:** [https://happy-bithday-olive.vercel.app](https://happy-bithday-olive.vercel.app)
+
+## 📖 Hướng dẫn sử dụng
+
+### Tạo trang Sinh Nhật
+1. Mở trang `index.html`
+2. Điền thông tin: tên, tuổi, ngày sinh, tiêu đề
+3. Thêm các lời chúc
+4. Nhấn **"Tạo Trang Sinh Nhật"**
+5. Copy link và gửi cho người nhận
+
+### Tạo trang Pháo Hoa
+1. Mở trang `index.html`
+2. Cuộn đến phần **"Pháo Hoa Năm Mới"**
+3. Thêm lời chúc năm mới
+4. Thêm URL ảnh (upload ảnh lên [postimg.cc](https://postimg.cc) → copy "Liên kết trực tiếp")
+5. Nhấn **"Lưu Cài Đặt Pháo Hoa"**
+6. Copy link và chia sẻ
+
+## 🛠️ Công nghệ
+
+- **Frontend:** HTML5, CSS3, Vanilla JavaScript
+- **Database:** Firebase Realtime Database
+- **Hosting:** Vercel
+- **Icons:** Font Awesome 6.5
+- **Animations:** CSS3 + Canvas
+
+## 📁 Cấu trúc thư mục
+
+```
+happy_birthday/
+├── index.html          # Form tạo trang
+├── home.html           # Trang hiển thị sinh nhật
+├── css/
+│   ├── index.css       # Style cho form
+│   └── home.css        # Style cho trang sinh nhật
+├── js/
+│   ├── index.js        # Logic form + Firebase
+│   ├── home.js         # Logic trang sinh nhật
+│   └── home-animation.js
+├── HappyNewYeah/       # Trang pháo hoa
+│   ├── index.html
+│   └── js/
+│       └── script.js
+└── README.md
 ```
 
-### Deploy lên GitHub Pages
+## ⚙️ Cài đặt Development
+
 ```bash
-1. Fork repository này
-2. Vào Settings > Pages
-3. Chọn Deploy from branch: main
-4. Truy cập https://username.github.io/hpbd/
+# Clone repo
+git clone https://github.com/thaivanhoa37/happy_bithday.git
+
+# Mở bằng Live Server hoặc bất kỳ local server nào
 ```
 
-## ⚙️ Công nghệ
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Storage**: Browser localStorage API
-- **Animations**: CSS3 transitions và keyframes
-- **Responsive**: CSS Grid và Flexbox
-- **Icons**: Font Awesome 6.5.1
+## 🔥 Firebase Setup
 
-## 📋 Files
+Project sử dụng Firebase Realtime Database. Để tự tạo project riêng:
 
-### Core Files
-- `index.html` - Trang tạo sinh nhật 
-- `home.html` - Trang hiển thị sinh nhật
-- `README.md` - Hướng dẫn sử dụng
-
-### Extra Files  
-- `h.html`, `tym.html` - Demo pages bổ sung
-
-## � Tính năng hiển thị
-- Gradient backgrounds đẹp mắt
-- Hiệu ứng pháo hoa khi load
-- Animation floating cho elements
-- Form validation real-time
-- Responsive cho mọi màn hình
-
-## � Lưu trữ localStorage
-- Tự động lưu lời chúc khi nhập
-- Tạo ID ngẫu nhiên 6 ký tự
-- Xóa dữ liệu tùy chọn
-- Không cần database hay server
+1. Tạo project tại [Firebase Console](https://console.firebase.google.com/)
+2. Tạo Realtime Database (test mode)
+3. Thay đổi `firebaseConfig` trong các file HTML
 
 ## 📱 Responsive
-- 📱 Mobile: < 768px
-- 💻 Tablet: 768px - 1024px  
-- 🖥️ Desktop: > 1024px
 
-## 🤝 Đóng góp
-1. Fork repository
-2. Tạo branch mới
-3. Commit changes
-4. Push và tạo Pull Request
+✅ Desktop  
+✅ Tablet  
+✅ Mobile  
 
 ## 📄 License
-MIT License - Sử dụng tự do cho mọi mục đích
+
+MIT License - Tự do sử dụng và chỉnh sửa
 
 ## 👨‍💻 Tác giả
 
+Made with ❤️ for special people
 
 ---
+
 ⭐ **Star repo này nếu hữu ích!** ⭐
