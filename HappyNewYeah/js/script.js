@@ -119,14 +119,14 @@ function preloadImages() {
 	});
 }
 
-function addImageBurst(x, y, baseSize = 200) {
+function addImageBurst(x, y, baseSize = 1000) {
 	if (!loadedImages.length) return;
 	const img = loadedImages[(Math.random() * loadedImages.length) | 0];
 
 	// Responsive: giảm kích thước trên mobile
 	const isMobile = window.innerWidth <= 768;
-	const adjustedBaseSize = isMobile ? baseSize * 0.6 : baseSize; // Giảm 40% trên mobile
-	const size = adjustedBaseSize * (0.6 + Math.random() * 0.8);
+	const adjustedBaseSize = isMobile ? baseSize * 0.8 : baseSize; // Giảm 40% trên mobile
+	const size = adjustedBaseSize * (0.8 + Math.random() * 0.6);
 
 	// Random: một số sẽ rơi xuống, một số sẽ biến mất ngay
 	const willFall = Math.random() < 0.6; // 60% sẽ rơi xuống, 40% biến mất ngay
