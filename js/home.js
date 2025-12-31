@@ -2,35 +2,41 @@
 const urlParams = new URLSearchParams(window.location.search);
 const shortId = urlParams.get('id');
 
-let customData;
+let customData = {
+    name: 'Người đặc biệt ❤️',
+    age: '22',
+    date: '01.01.00',
+    title: 'Chúc mừng sinh nhật',
+    wishes: [],
+    fireworkLink: null,
+    music: null
+};
 
+// Đọc dữ liệu từ localStorage
 if (shortId) {
     const storedData = localStorage.getItem(`birthday_${shortId}`);
     if (storedData) {
         const parsedData = JSON.parse(storedData);
         customData = {
-            name: parsedData.name || 'Hòa ❤️',
-            age: parsedData.age || '22',
-            date: parsedData.date || '20.06.02',
-            title: parsedData.title || 'Chúc mừng sinh nhật',
+            name: parsedData.name || customData.name,
+            age: parsedData.age || customData.age,
+            date: parsedData.date || customData.date,
+            title: parsedData.title || customData.title,
             wishes: parsedData.wishes || [],
+            fireworkLink: parsedData.fireworkLink || null,
             music: parsedData.music || null
         };
-    } else {
-        customData = { name: 'Hòa ❤️', age: '22', date: '20.06.02', title: 'Chúc mừng sinh nhật', wishes: [], music: null };
+        console.log('[Home] Đã tải dữ liệu từ localStorage:', customData);
     }
-} else {
-    customData = {
-        name: urlParams.get('name') || 'Hòa ❤️',
-        age: urlParams.get('age') || '22',
-        date: urlParams.get('date') || '20.06.02',
-        title: urlParams.get('title') || 'Chúc mừng sinh nhật',
-        wishes: urlParams.get('wishes') ? JSON.parse(urlParams.get('wishes')) : [],
-        music: null
-    };
 }
 
 document.title = customData.title;
+
+// Cập nhật link thư nếu có fireworkLink
+if (customData.fireworkLink) {
+    document.getElementById('letterBtn').href = customData.fireworkLink;
+    console.log('[Home] Đã cập nhật link thư:', customData.fireworkLink);
+}
 
 function show_date_time() {
     window.setTimeout("show_date_time()", 1000);
@@ -54,17 +60,12 @@ function show_date_time() {
 show_date_time();
 
 // ============ FULLSCREEN FUNCTIONALITY ============
-// Kiểm tra thiết bị mobile
 const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
-// Biến đánh dấu đã vào fullscreen chưa
 let hasEnteredFullscreen = false;
 
-// Thêm CSS cho exit hint
 function addFullscreenStyles() {
     const style = document.createElement('style');
     style.textContent = `
-        /* Exit hint hiển thị khi đang fullscreen */
         .exit-hint {
             position: fixed;
             bottom: 20px;
@@ -87,92 +88,72 @@ function addFullscreenStyles() {
     document.head.appendChild(style);
 }
 
-// Vào fullscreen
 function enterFullscreen() {
-    if (hasEnteredFullscreen) return; // Đã fullscreen rồi thì không làm gì
-
+    if (hasEnteredFullscreen) return;
     const elem = document.documentElement;
-
     if (elem.requestFullscreen) {
         elem.requestFullscreen();
-    } else if (elem.webkitRequestFullscreen) { /* Safari */
+    } else if (elem.webkitRequestFullscreen) {
         elem.webkitRequestFullscreen();
-    } else if (elem.msRequestFullscreen) { /* IE11 */
+    } else if (elem.msRequestFullscreen) {
         elem.msRequestFullscreen();
     }
-
     hasEnteredFullscreen = true;
-
-    // Ẩn tap instruction
     const tapInstruction = document.getElementById('tapInstruction');
     if (tapInstruction) {
         tapInstruction.style.display = 'none';
     }
-
-    // Hiển thị hint thoát fullscreen
     showExitHint();
 }
 
-// Thoát fullscreen
 function exitFullscreen() {
     if (document.exitFullscreen) {
         document.exitFullscreen();
-    } else if (document.webkitExitFullscreen) { /* Safari */
+    } else if (document.webkitExitFullscreen) {
         document.webkitExitFullscreen();
-    } else if (document.msExitFullscreen) { /* IE11 */
+    } else if (document.msExitFullscreen) {
         document.msExitFullscreen();
     }
 }
 
-// Kiểm tra đang fullscreen không
 function isFullscreen() {
     return !!(document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement);
 }
 
-// Hiển thị hint cách thoát fullscreen
 function showExitHint() {
-    // Xóa hint cũ nếu có
     const oldHint = document.querySelector('.exit-hint');
     if (oldHint) oldHint.remove();
-
     const hint = document.createElement('div');
     hint.className = 'exit-hint';
     hint.textContent = isMobile ? '👆 Chạm 2 lần để thoát' : '⌨️ Nhấn ESC để thoát';
     document.body.appendChild(hint);
-
-    // Hiển thị hint
     setTimeout(() => hint.classList.add('show'), 100);
-
-    // Ẩn hint sau 3 giây
     setTimeout(() => {
         hint.classList.remove('show');
         setTimeout(() => hint.remove(), 300);
     }, 3000);
 }
 
-// ============ CLICK ANYWHERE TO ENTER FULLSCREEN ============
 document.addEventListener('click', function (e) {
     if (!hasEnteredFullscreen) {
         enterFullscreen();
     }
 });
 
+let lastTapTime = 0;
+const doubleTapDelay = 300;
+
 document.addEventListener('touchend', function (e) {
     if (!hasEnteredFullscreen) {
         enterFullscreen();
         return;
     }
-
-    // Double tap để thoát fullscreen (chỉ khi đang fullscreen)
     if (isFullscreen()) {
         const currentTime = new Date().getTime();
         const tapLength = currentTime - lastTapTime;
-
         if (tapLength < doubleTapDelay && tapLength > 0) {
-            // Double tap detected - thoát fullscreen
             e.preventDefault();
             exitFullscreen();
-            console.log('Double tap - Thoát fullscreen');
             lastTapTime = 0;
         } else {
             lastTapTime = currentTime;
@@ -180,35 +161,24 @@ document.addEventListener('touchend', function (e) {
     }
 });
 
-// ============ DOUBLE TAP TO EXIT (MOBILE) ============
-let lastTapTime = 0;
-const doubleTapDelay = 300; // ms
-
-// ============ ESC KEY TO EXIT (DESKTOP) ============
-// Browser tự động xử lý ESC để thoát fullscreen
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape' && isFullscreen()) {
         console.log('Nhấn ESC - Thoát fullscreen');
     }
 });
 
-// Lắng nghe sự kiện thay đổi fullscreen
 document.addEventListener('fullscreenchange', handleFullscreenChange);
 document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
 document.addEventListener('msfullscreenchange', handleFullscreenChange);
 
 function handleFullscreenChange() {
     if (!isFullscreen()) {
-        console.log('Đã thoát fullscreen');
-        // Xóa exit hint nếu còn
         const hint = document.querySelector('.exit-hint');
         if (hint) hint.remove();
     }
 }
 
-// Khởi tạo styles khi trang load
 document.addEventListener('DOMContentLoaded', addFullscreenStyles);
-
 if (document.readyState === 'complete' || document.readyState === 'interactive') {
     addFullscreenStyles();
 }

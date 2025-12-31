@@ -82,8 +82,12 @@ document.getElementById('birthdayForm').addEventListener('submit', function (e) 
 
     // Tạo shortId
     const shortId = generateShortId();
+
+    // Lấy link pháo hoa (nếu có)
+    const fireworkLink = document.getElementById('fireworkLink').value.trim();
+
     // Lưu vào localStorage đúng cấu trúc home.html
-    const data = { name, age, date, title, wishes: wishesFiltered };
+    const data = { name, age, date, title, wishes: wishesFiltered, fireworkLink: fireworkLink || null };
     console.log('Data to save:', data);
     localStorage.setItem(`birthday_${shortId}`, JSON.stringify(data));
 
