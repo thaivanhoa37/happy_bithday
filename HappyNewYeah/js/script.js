@@ -152,18 +152,31 @@ let imageBurstEnabled = false;
 let isFinalePhase = false;
 
 function preloadImages() {
+	console.log('[HappyNewYear] Bắt đầu preload ảnh từ:', imageSources);
+
+	// Xóa ảnh cũ trước khi load ảnh mới
+	loadedImages.length = 0;
+
 	const loaders = imageSources.map(
 		(src) =>
 			new Promise((resolve) => {
 				const img = new Image();
-				img.onload = () => resolve(img);
-				img.onerror = () => resolve(null);
+				img.crossOrigin = 'anonymous'; // Cho phép load ảnh cross-origin
+				img.onload = () => {
+					console.log('[HappyNewYear] Đã load ảnh:', src);
+					resolve(img);
+				};
+				img.onerror = (e) => {
+					console.error('[HappyNewYear] Lỗi load ảnh:', src, e);
+					resolve(null);
+				};
 				img.src = src;
 			})
 	);
 
 	return Promise.all(loaders).then((imgs) => {
 		imgs.forEach((img) => img && loadedImages.push(img));
+		console.log('[HappyNewYear] Tổng số ảnh đã load:', loadedImages.length);
 	});
 }
 
