@@ -27,18 +27,6 @@
     <a href="HappyNewYeah/index.html" class="letter-btn" id="letterBtn" title="Mở bức thư">
         <i class="fas fa-envelope"></i>
     </a>
-    <script>
-        // Cập nhật link thư để truyền ID pháo hoa nếu có
-        (function () {
-            const urlParams = new URLSearchParams(window.location.search);
-            const birthdayId = urlParams.get('id');
-            if (birthdayId) {
-                // Kiểm tra xem có firework ID liên kết với birthday ID không
-                // Hoặc dùng cùng ID nếu đã lưu chung
-                document.getElementById('letterBtn').href = 'HappyNewYeah/index.html?id=' + birthdayId;
-            }
-        })();
-    </script>
 
     <!-- Music Control -->
     <div class="music-control" id="musicControl">
@@ -55,22 +43,6 @@
     <!-- Floating Elements -->
     <div class="snowflakes" id="snowflakes"></div>
 
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
-    <script>
-        const firebaseConfig = {
-            apiKey: "AIzaSyAIR8Yor7nuBf1KB7fV3gJEnSO25L0p9Y0",
-            authDomain: "happy-birthday-9cff4.firebaseapp.com",
-            databaseURL: "https://happy-birthday-9cff4-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "happy-birthday-9cff4",
-            storageBucket: "happy-birthday-9cff4.firebasestorage.app",
-            messagingSenderId: "110574701082",
-            appId: "1:110574701082:web:ca30d7244c8c8010bf5fa3"
-        };
-        firebase.initializeApp(firebaseConfig);
-        window.db = firebase.database();
-    </script>
     <script src="js/home.js"></script>
     <script src="js/home-animation.js"></script>
     <script src="js/home-effects.js"></script>
