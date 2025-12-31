@@ -85,6 +85,21 @@ document.getElementById('birthdayForm').addEventListener('submit', async functio
         await window.db.ref('birthdays/' + shortId).set(data);
         console.log('[Firebase] Đã lưu birthday:', shortId, data);
 
+        // Lưu luôn pháo hoa với cùng ID (nếu có dữ liệu)
+        const fwWishes = fireworkWishes.filter(w => w && w.trim().length > 0);
+        const fwImages = fireworkImages
+            .filter(img => img && img.trim().length > 0 && !img.startsWith('data:image'))
+            .map(img => convertToDirectImageUrl(img));
+
+        if (fwWishes.length > 0 || fwImages.length > 0) {
+            await window.db.ref('fireworks/' + shortId).set({
+                wishes: fwWishes,
+                images: fwImages,
+                createdAt: Date.now()
+            });
+            console.log('[Firebase] Đã lưu firework cùng ID:', shortId);
+        }
+
         // Xóa lời chúc tạm thời
         localStorage.removeItem('current_wishes');
         wishes = [];
