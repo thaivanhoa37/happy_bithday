@@ -268,18 +268,109 @@ function saveFireworkData() {
         if (val.length > 0) filteredWishes.push(val);
     });
 
-    // Lấy ảnh từ input (chỉ lấy URL hợp lệ hoặc base64)
-    const filteredImages = fireworkImages.filter(img => img && img.trim().length > 0);
+    // Lấy ảnh từ input (chỉ lấy URL - không lấy base64 vì quá dài cho URL)
+    const filteredImages = fireworkImages.filter(img => {
+        if (!img || img.trim().length === 0) return false;
+        // Bỏ qua ảnh base64 vì quá dài cho URL
+        if (img.startsWith('data:image')) {
+            console.warn('Ảnh upload (base64) sẽ không được share qua URL do quá dài');
+            return false;
+        }
+        return true;
+    });
 
-    // Lưu vào localStorage
+    // Lưu vào localStorage (cho local preview)
     localStorage.setItem('happynewyear_wishes', JSON.stringify(filteredWishes));
-    localStorage.setItem('happynewyear_images', JSON.stringify(filteredImages));
+    localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
 
     // Cập nhật biến local
     fireworkWishes = filteredWishes;
-    fireworkImages = filteredImages;
 
-    alert(`Đã lưu thành công!\n- ${filteredWishes.length} lời chúc\n- ${filteredImages.length} hình ảnh\n\nMở trang pháo hoa để xem kết quả.`);
+    // Tạo URL share được
+    const shareUrl = generateFireworkShareUrl(filteredWishes, filteredImages);
+
+    // Hiển thị kết quả với link copy được
+    showShareResult(shareUrl, filteredWishes.length, filteredImages.length);
+}
+
+// Tạo URL với dữ liệu encoded
+function generateFireworkShareUrl(wishes, images) {
+    const data = {
+        w: wishes,  // wishes
+        i: images   // images (chỉ URL, không base64)
+    };
+
+    // Encode dữ liệu thành base64
+    const jsonStr = JSON.stringify(data);
+    const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+
+    // Tạo URL
+    const baseUrl = window.location.origin + window.location.pathname.replace('/index.html', '');
+    return `${baseUrl}/HappyNewYeah/index.html?data=${encoded}`;
+}
+
+// Hiển thị kết quả với link share
+function showShareResult(shareUrl, wishCount, imageCount) {
+    // Tạo hoặc lấy result element
+    let resultDiv = document.getElementById('firework-result');
+    if (!resultDiv) {
+        resultDiv = document.createElement('div');
+        resultDiv.id = 'firework-result';
+        resultDiv.className = 'result';
+        resultDiv.style.marginTop = '20px';
+
+        const fireworkSection = document.querySelector('.firework-section');
+        fireworkSection.appendChild(resultDiv);
+    }
+
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = `
+        <h3><i class="fas fa-check-circle"></i> Đã lưu thành công!</h3>
+        <p style="margin: 12px 0; opacity: 0.9;">
+            <strong>${wishCount}</strong> lời chúc • <strong>${imageCount}</strong> hình ảnh URL
+        </p>
+        <p style="margin-bottom: 12px; font-size: 0.9rem; opacity: 0.85;">
+            ${imageCount === 0 ? '⚠️ Lưu ý: Ảnh upload sẽ không share được, chỉ URL ảnh mới share được' : ''}
+        </p>
+        <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+            <input type="text" id="share-url-input" value="${shareUrl}" readonly 
+                style="width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 0.85rem; background: rgba(255,255,255,0.9); color: #333;">
+        </div>
+        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <button onclick="copyShareUrl()" style="background: #fff; color: #059669; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-copy"></i> Copy Link
+            </button>
+            <a href="${shareUrl}" target="_blank" style="background: rgba(255,255,255,0.2); color: #fff; border: 2px solid rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-external-link-alt"></i> Mở thử
+            </a>
+        </div>
+    `;
+
+    resultDiv.scrollIntoView({ behavior: 'smooth' });
+}
+
+// Copy URL vào clipboard
+function copyShareUrl() {
+    const input = document.getElementById('share-url-input');
+    input.select();
+    input.setSelectionRange(0, 99999);
+
+    navigator.clipboard.writeText(input.value).then(() => {
+        // Thay đổi text nút tạm thời
+        const btn = event.target.closest('button');
+        const originalHTML = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Đã copy!';
+        btn.style.background = '#10b981';
+        btn.style.color = '#fff';
+
+        setTimeout(() => {
+            btn.innerHTML = originalHTML;
+            btn.style.background = '#fff';
+            btn.style.color = '#059669';
+        }, 2000);
+    }).catch(err => {
+        alert('Không thể copy. Vui lòng copy thủ công.');
+    });
 }
 
 // Khởi tạo khi load trang

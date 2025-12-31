@@ -70,7 +70,7 @@ randomWords.forEach((word) => {
 });
 
 // Ảnh dùng cho hiệu ứng nổ (hiển thị hình ảnh ngẫu nhiên tại điểm nổ)
-// Mặc định - sẽ được ghi đè nếu có dữ liệu từ localStorage
+// Mặc định - sẽ được ghi đè nếu có dữ liệu từ URL hoặc localStorage
 let imageSources = [
 	"./images/image1.jpeg",
 	"./images/image2.jpeg",
@@ -79,16 +79,45 @@ let imageSources = [
 	"./images/image5.jpeg",
 ];
 
-// Đọc ảnh custom từ localStorage (được set từ trang index.html)
+// Hàm decode dữ liệu từ URL parameter
+function parseUrlData() {
+	try {
+		const urlParams = new URLSearchParams(window.location.search);
+		const encodedData = urlParams.get('data');
+		if (!encodedData) return null;
+
+		// Decode base64 -> JSON
+		const jsonStr = decodeURIComponent(escape(atob(encodedData)));
+		const data = JSON.parse(jsonStr);
+		console.log('[HappyNewYear] Đã đọc dữ liệu từ URL:', data);
+		return data;
+	} catch (e) {
+		console.warn('[HappyNewYear] Không thể decode dữ liệu từ URL:', e);
+		return null;
+	}
+}
+
+// Đọc ảnh custom: ưu tiên URL params > localStorage > mặc định
 (function loadCustomImages() {
 	try {
+		// 1. Ưu tiên đọc từ URL params
+		const urlData = parseUrlData();
+		if (urlData && urlData.i && Array.isArray(urlData.i) && urlData.i.length > 0) {
+			const validImages = urlData.i.filter(img => img && img.trim().length > 0);
+			if (validImages.length > 0) {
+				imageSources = validImages;
+				console.log('[HappyNewYear] Đã tải ' + validImages.length + ' ảnh từ URL');
+				return;
+			}
+		}
+
+		// 2. Fallback: đọc từ localStorage
 		const customImages = JSON.parse(localStorage.getItem('happynewyear_images'));
 		if (customImages && Array.isArray(customImages) && customImages.length > 0) {
-			// Chỉ lấy ảnh có URL hợp lệ
 			const validImages = customImages.filter(img => img && img.trim().length > 0);
 			if (validImages.length > 0) {
 				imageSources = validImages;
-				console.log('[HappyNewYear] Đã tải ' + validImages.length + ' ảnh custom từ localStorage');
+				console.log('[HappyNewYear] Đã tải ' + validImages.length + ' ảnh từ localStorage');
 			}
 		}
 	} catch (e) {
@@ -598,16 +627,27 @@ let WISH_MESSAGES = [
 	"Chúc em gặp nhiều may mắn và niềm vui 🎉",
 ];
 
-// Đọc lời chúc custom từ localStorage (được set từ trang index.html)
+// Đọc lời chúc custom: ưu tiên URL params > localStorage > mặc định
 (function loadCustomWishes() {
 	try {
+		// 1. Ưu tiên đọc từ URL params
+		const urlData = parseUrlData();
+		if (urlData && urlData.w && Array.isArray(urlData.w) && urlData.w.length > 0) {
+			const validWishes = urlData.w.filter(w => w && w.trim().length > 0);
+			if (validWishes.length > 0) {
+				WISH_MESSAGES = validWishes;
+				console.log('[HappyNewYear] Đã tải ' + validWishes.length + ' lời chúc từ URL');
+				return;
+			}
+		}
+
+		// 2. Fallback: đọc từ localStorage
 		const customWishes = JSON.parse(localStorage.getItem('happynewyear_wishes'));
 		if (customWishes && Array.isArray(customWishes) && customWishes.length > 0) {
-			// Chỉ lấy lời chúc có nội dung
 			const validWishes = customWishes.filter(w => w && w.trim().length > 0);
 			if (validWishes.length > 0) {
 				WISH_MESSAGES = validWishes;
-				console.log('[HappyNewYear] Đã tải ' + validWishes.length + ' lời chúc custom từ localStorage');
+				console.log('[HappyNewYear] Đã tải ' + validWishes.length + ' lời chúc từ localStorage');
 			}
 		}
 	} catch (e) {
