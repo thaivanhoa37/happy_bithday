@@ -11,12 +11,64 @@
 
 <body>
     <div class="container">
-        <div class="header">
-            <h1><i class="fas fa-birthday-cake"></i> Tạo Trang Sinh Nhật</h1>
-            <p>Tạo trang sinh nhật đặc biệt với hiệu ứng đẹp mắt và lời chúc ý nghĩa</p>
+        <!-- SECTION: Pháo Hoa Năm Mới -->
+        <div class="firework-section">
+            <div class="header">
+                <h1><i class="fas fa-fire-alt"></i> Pháo Hoa Năm Mới</h1>
+                <p>Tùy chỉnh lời chúc và hình ảnh cho trang pháo hoa</p>
+            </div>
+
+            <!-- Lời chúc năm mới -->
+            <div class="wishes-section">
+                <div class="wishes-header">
+                    <h3><i class="fas fa-comment-dots"></i> Lời chúc năm mới</h3>
+                    <button type="button" onclick="clearFireworkWishes()" class="clear-btn">
+                        <i class="fas fa-eraser"></i> Xóa hết
+                    </button>
+                </div>
+                <div id="fireworkWishesList" class="wishes-list"></div>
+                <button type="button" class="add-wish-btn" onclick="addFireworkWish()">
+                    <i class="fas fa-plus"></i> Thêm lời chúc
+                </button>
+            </div>
+
+            <!-- Hình ảnh -->
+            <div class="wishes-section">
+                <div class="wishes-header">
+                    <h3><i class="fas fa-images"></i> Hình ảnh pháo hoa</h3>
+                    <button type="button" onclick="clearFireworkImages()" class="clear-btn">
+                        <i class="fas fa-eraser"></i> Xóa hết
+                    </button>
+                </div>
+                <div id="fireworkImagesList" class="images-list"></div>
+                <div class="image-input-group">
+                    <button type="button" class="add-wish-btn" onclick="addFireworkImageUrl()">
+                        <i class="fas fa-link"></i> Thêm URL ảnh
+                    </button>
+                    <label class="upload-btn">
+                        <i class="fas fa-upload"></i> Tải ảnh lên
+                        <input type="file" id="imageUpload" accept="image/*" multiple
+                            onchange="handleImageUpload(event)" style="display:none;">
+                    </label>
+                </div>
+            </div>
+
+            <button type="button" class="submit-btn firework-btn" onclick="saveFireworkData()">
+                <i class="fas fa-save"></i> Lưu Cài Đặt Pháo Hoa
+            </button>
+            <a href="HappyNewYeah/index.html" class="view-firework-link" target="_blank">
+                <i class="fas fa-external-link-alt"></i> Xem trang pháo hoa
+            </a>
         </div>
 
+        <hr class="section-divider">
+
+        <!-- SECTION: Sinh Nhật -->
         <form id="birthdayForm">
+            <div class="header">
+                <h1><i class="fas fa-birthday-cake"></i> Tạo Trang Sinh Nhật</h1>
+                <p>Tạo trang sinh nhật đặc biệt với hiệu ứng đẹp mắt và lời chúc ý nghĩa</p>
+            </div>
             <div class="form-grid">
                 <div class="form-group">
                     <label for="name"><i class="fas fa-user"></i> Tên người sinh nhật:</label>

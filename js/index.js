@@ -130,3 +130,161 @@ function clearAllData() {
         alert('Đã xóa tất cả dữ liệu!');
     }
 }
+
+// ===== FIREWORK MANAGEMENT =====
+
+// Load dữ liệu pháo hoa từ localStorage
+let fireworkWishes = JSON.parse(localStorage.getItem('happynewyear_wishes')) || [];
+let fireworkImages = JSON.parse(localStorage.getItem('happynewyear_images')) || [];
+
+// Render danh sách lời chúc pháo hoa
+function renderFireworkWishes() {
+    const list = document.getElementById('fireworkWishesList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    fireworkWishes.forEach((wish, idx) => {
+        const div = document.createElement('div');
+        div.className = 'wish-item';
+        div.innerHTML = `
+            <input type="text" value="${wish.replace(/"/g, '&quot;')}" data-index="${idx}" placeholder="Nhập lời chúc năm mới...">
+            <button type="button" class="remove-wish-btn" onclick="removeFireworkWish(${idx})"><i class='fas fa-trash'></i></button>
+        `;
+        list.appendChild(div);
+
+        const input = div.querySelector('input');
+        input.addEventListener('input', function () {
+            fireworkWishes[idx] = this.value;
+            localStorage.setItem('happynewyear_wishes', JSON.stringify(fireworkWishes));
+        });
+    });
+}
+
+function addFireworkWish() {
+    fireworkWishes.push("");
+    localStorage.setItem('happynewyear_wishes', JSON.stringify(fireworkWishes));
+    renderFireworkWishes();
+    setTimeout(() => {
+        const inputs = document.querySelectorAll('#fireworkWishesList input');
+        if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    }, 100);
+}
+
+function removeFireworkWish(idx) {
+    fireworkWishes.splice(idx, 1);
+    localStorage.setItem('happynewyear_wishes', JSON.stringify(fireworkWishes));
+    renderFireworkWishes();
+}
+
+function clearFireworkWishes() {
+    if (confirm('Xóa tất cả lời chúc năm mới?')) {
+        fireworkWishes = [];
+        localStorage.setItem('happynewyear_wishes', JSON.stringify(fireworkWishes));
+        renderFireworkWishes();
+    }
+}
+
+// Render danh sách hình ảnh pháo hoa
+function renderFireworkImages() {
+    const list = document.getElementById('fireworkImagesList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    fireworkImages.forEach((img, idx) => {
+        const div = document.createElement('div');
+        div.className = 'wish-item';
+
+        // Kiểm tra nếu là base64 hay URL
+        const isBase64 = img.startsWith('data:image');
+        const previewSrc = img;
+
+        div.innerHTML = `
+            <img src="${previewSrc}" class="image-preview" onerror="this.src='https://via.placeholder.com/60?text=Error'">
+            <input type="text" class="image-url-input" value="${isBase64 ? '[Ảnh đã tải lên]' : img}" ${isBase64 ? 'readonly' : ''} data-index="${idx}" placeholder="URL hình ảnh...">
+            <button type="button" class="remove-wish-btn" onclick="removeFireworkImage(${idx})"><i class='fas fa-trash'></i></button>
+        `;
+        list.appendChild(div);
+
+        if (!isBase64) {
+            const input = div.querySelector('input');
+            input.addEventListener('input', function () {
+                fireworkImages[idx] = this.value;
+                localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
+                // Cập nhật preview
+                div.querySelector('.image-preview').src = this.value;
+            });
+        }
+    });
+}
+
+function addFireworkImageUrl() {
+    fireworkImages.push("");
+    localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
+    renderFireworkImages();
+    setTimeout(() => {
+        const inputs = document.querySelectorAll('#fireworkImagesList .image-url-input');
+        if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    }, 100);
+}
+
+function handleImageUpload(event) {
+    const files = event.target.files;
+    if (!files.length) return;
+
+    Array.from(files).forEach(file => {
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            fireworkImages.push(e.target.result); // base64
+            localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
+            renderFireworkImages();
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // Reset input để có thể upload lại cùng file
+    event.target.value = '';
+}
+
+function removeFireworkImage(idx) {
+    fireworkImages.splice(idx, 1);
+    localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
+    renderFireworkImages();
+}
+
+function clearFireworkImages() {
+    if (confirm('Xóa tất cả hình ảnh pháo hoa?')) {
+        fireworkImages = [];
+        localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
+        renderFireworkImages();
+    }
+}
+
+function saveFireworkData() {
+    // Lấy lời chúc từ input
+    const wishInputs = document.querySelectorAll('#fireworkWishesList input');
+    const filteredWishes = [];
+    wishInputs.forEach(input => {
+        const val = input.value.trim();
+        if (val.length > 0) filteredWishes.push(val);
+    });
+
+    // Lấy ảnh từ input (chỉ lấy URL hợp lệ hoặc base64)
+    const filteredImages = fireworkImages.filter(img => img && img.trim().length > 0);
+
+    // Lưu vào localStorage
+    localStorage.setItem('happynewyear_wishes', JSON.stringify(filteredWishes));
+    localStorage.setItem('happynewyear_images', JSON.stringify(filteredImages));
+
+    // Cập nhật biến local
+    fireworkWishes = filteredWishes;
+    fireworkImages = filteredImages;
+
+    alert(`Đã lưu thành công!\n- ${filteredWishes.length} lời chúc\n- ${filteredImages.length} hình ảnh\n\nMở trang pháo hoa để xem kết quả.`);
+}
+
+// Khởi tạo khi load trang
+document.addEventListener('DOMContentLoaded', function () {
+    renderFireworkWishes();
+    renderFireworkImages();
+});
+
