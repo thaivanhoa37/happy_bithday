@@ -1,34 +1,58 @@
-// Get data from localStorage or URL parameters
+// Get data from Firebase or URL parameters
 const urlParams = new URLSearchParams(window.location.search);
 const shortId = urlParams.get('id');
 
-let customData;
+let customData = {
+    name: 'Người đặc biệt ❤️',
+    age: '22',
+    date: '01.01.00',
+    title: 'Chúc mừng sinh nhật',
+    wishes: [],
+    music: null
+};
 
-if (shortId) {
-    const storedData = localStorage.getItem(`birthday_${shortId}`);
-    if (storedData) {
-        const parsedData = JSON.parse(storedData);
-        customData = {
-            name: parsedData.name || 'Hòa ❤️',
-            age: parsedData.age || '22',
-            date: parsedData.date || '20.06.02',
-            title: parsedData.title || 'Chúc mừng sinh nhật',
-            wishes: parsedData.wishes || [],
-            music: parsedData.music || null
-        };
-    } else {
-        customData = { name: 'Hòa ❤️', age: '22', date: '20.06.02', title: 'Chúc mừng sinh nhật', wishes: [], music: null };
+// Hàm async để load dữ liệu từ Firebase
+async function loadBirthdayData() {
+    if (!shortId) {
+        console.log('[Home] Không có ID trong URL');
+        return;
     }
-} else {
-    customData = {
-        name: urlParams.get('name') || 'Hòa ❤️',
-        age: urlParams.get('age') || '22',
-        date: urlParams.get('date') || '20.06.02',
-        title: urlParams.get('title') || 'Chúc mừng sinh nhật',
-        wishes: urlParams.get('wishes') ? JSON.parse(urlParams.get('wishes')) : [],
-        music: null
-    };
+
+    try {
+        console.log('[Home] Đang tải dữ liệu sinh nhật từ Firebase với ID:', shortId);
+
+        const snapshot = await window.db.ref('birthdays/' + shortId).once('value');
+        const data = snapshot.val();
+
+        if (data) {
+            customData = {
+                name: data.name || customData.name,
+                age: data.age || customData.age,
+                date: data.date || customData.date,
+                title: data.title || customData.title,
+                wishes: data.wishes || [],
+                music: data.music || null
+            };
+            console.log('[Home] Đã tải dữ liệu từ Firebase:', customData);
+
+            // Cập nhật title trang
+            document.title = customData.title;
+
+            // Trigger rerender nếu animation đã chạy
+            if (typeof renderBirthdayContent === 'function') {
+                renderBirthdayContent();
+            }
+        } else {
+            console.log('[Home] Không tìm thấy dữ liệu với ID:', shortId);
+        }
+
+    } catch (error) {
+        console.error('[Home] Lỗi khi tải dữ liệu từ Firebase:', error);
+    }
 }
+
+// Load dữ liệu khi trang được tải
+loadBirthdayData();
 
 document.title = customData.title;
 

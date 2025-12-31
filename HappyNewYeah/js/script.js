@@ -70,7 +70,7 @@ randomWords.forEach((word) => {
 });
 
 // Ảnh dùng cho hiệu ứng nổ (hiển thị hình ảnh ngẫu nhiên tại điểm nổ)
-// Mặc định - sẽ được ghi đè nếu có dữ liệu từ URL hoặc localStorage
+// Mặc định - sẽ được ghi đè nếu có dữ liệu từ Firebase
 let imageSources = [
 	"./images/image1.jpeg",
 	"./images/image2.jpeg",
@@ -79,51 +79,70 @@ let imageSources = [
 	"./images/image5.jpeg",
 ];
 
-// Hàm decode dữ liệu từ URL parameter
-function parseUrlData() {
+// Lời chúc mặc định - sẽ được ghi đè nếu có dữ liệu từ Firebase
+let WISH_MESSAGES = [
+	"Chúc mừng năm mới 2025! 🎆",
+	"An khang thịnh vượng! ✨",
+	"Vạn sự như ý! 🌟",
+	"Năm mới bình an! ❤️",
+	"Sức khỏe dồi dào! 💪",
+	"Hạnh phúc tràn đầy! 😊",
+];
+
+// Flag để biết đã load xong Firebase data chưa
+let firebaseDataLoaded = false;
+
+// Hàm load dữ liệu từ Firebase
+async function loadFireworkDataFromFirebase() {
 	try {
 		const urlParams = new URLSearchParams(window.location.search);
-		const encodedData = urlParams.get('data');
-		if (!encodedData) return null;
+		const firebaseId = urlParams.get('id');
 
-		// Decode base64 -> JSON
-		const jsonStr = decodeURIComponent(escape(atob(encodedData)));
-		const data = JSON.parse(jsonStr);
-		console.log('[HappyNewYear] Đã đọc dữ liệu từ URL:', data);
-		return data;
-	} catch (e) {
-		console.warn('[HappyNewYear] Không thể decode dữ liệu từ URL:', e);
-		return null;
+		if (!firebaseId) {
+			console.log('[HappyNewYear] Không có ID trong URL, dùng dữ liệu mặc định');
+			return false;
+		}
+
+		console.log('[HappyNewYear] Đang tải dữ liệu từ Firebase với ID:', firebaseId);
+
+		const snapshot = await window.db.ref('fireworks/' + firebaseId).once('value');
+		const data = snapshot.val();
+
+		if (!data) {
+			console.log('[HappyNewYear] Không tìm thấy dữ liệu với ID:', firebaseId);
+			return false;
+		}
+
+		console.log('[HappyNewYear] Đã tải dữ liệu từ Firebase:', data);
+
+		// Ghi đè lời chúc nếu có
+		if (data.wishes && Array.isArray(data.wishes) && data.wishes.length > 0) {
+			WISH_MESSAGES = data.wishes;
+			console.log('[HappyNewYear] Đã cập nhật', data.wishes.length, 'lời chúc từ Firebase');
+		}
+
+		// Ghi đè ảnh nếu có
+		if (data.images && Array.isArray(data.images) && data.images.length > 0) {
+			imageSources = data.images;
+			console.log('[HappyNewYear] Đã cập nhật', data.images.length, 'ảnh từ Firebase');
+		}
+
+		firebaseDataLoaded = true;
+		return true;
+
+	} catch (error) {
+		console.error('[HappyNewYear] Lỗi khi tải dữ liệu từ Firebase:', error);
+		return false;
 	}
 }
 
-// Đọc ảnh custom: ưu tiên URL params > localStorage > mặc định
-(function loadCustomImages() {
-	try {
-		// 1. Ưu tiên đọc từ URL params
-		const urlData = parseUrlData();
-		if (urlData && urlData.i && Array.isArray(urlData.i) && urlData.i.length > 0) {
-			const validImages = urlData.i.filter(img => img && img.trim().length > 0);
-			if (validImages.length > 0) {
-				imageSources = validImages;
-				console.log('[HappyNewYear] Đã tải ' + validImages.length + ' ảnh từ URL');
-				return;
-			}
-		}
-
-		// 2. Fallback: đọc từ localStorage
-		const customImages = JSON.parse(localStorage.getItem('happynewyear_images'));
-		if (customImages && Array.isArray(customImages) && customImages.length > 0) {
-			const validImages = customImages.filter(img => img && img.trim().length > 0);
-			if (validImages.length > 0) {
-				imageSources = validImages;
-				console.log('[HappyNewYear] Đã tải ' + validImages.length + ' ảnh từ localStorage');
-			}
-		}
-	} catch (e) {
-		console.warn('[HappyNewYear] Không thể đọc ảnh custom:', e);
+// Load dữ liệu Firebase khi trang được tải (async)
+loadFireworkDataFromFirebase().then(loaded => {
+	if (loaded) {
+		// Preload lại ảnh mới từ Firebase
+		preloadImages();
 	}
-})();
+});
 const loadedImages = [];
 const imageBursts = [];
 // Sau 10s kể từ khi bắt đầu show mới cho phép xuất hiện ảnh trong pháo
@@ -148,14 +167,14 @@ function preloadImages() {
 	});
 }
 
-function addImageBurst(x, y, baseSize = 1000) {
+function addImageBurst(x, y, baseSize = 200) {
 	if (!loadedImages.length) return;
 	const img = loadedImages[(Math.random() * loadedImages.length) | 0];
 
 	// Responsive: giảm kích thước trên mobile
 	const isMobile = window.innerWidth <= 768;
-	const adjustedBaseSize = isMobile ? baseSize * 0.8 : baseSize; // Giảm 40% trên mobile
-	const size = adjustedBaseSize * (0.8 + Math.random() * 0.6);
+	const adjustedBaseSize = isMobile ? baseSize * 0.6 : baseSize; // Giảm 40% trên mobile
+	const size = adjustedBaseSize * (0.6 + Math.random() * 0.8);
 
 	// Random: một số sẽ rơi xuống, một số sẽ biến mất ngay
 	const willFall = Math.random() < 0.6; // 60% sẽ rơi xuống, 40% biến mất ngay
@@ -196,31 +215,6 @@ document.addEventListener("DOMContentLoaded", function () {
 	var canvasContainer = document.querySelector(".canvas-container");
 	canvasContainer.style.backgroundImage = "url()";
 	canvasContainer.style.backgroundSize = "100%";
-
-	// Auto fullscreen khi click/touch lần đầu tiên
-	// Trình duyệt yêu cầu user interaction để vào fullscreen
-	let hasRequestedFullscreen = false;
-
-	function requestAutoFullscreen() {
-		if (hasRequestedFullscreen) return;
-		hasRequestedFullscreen = true;
-
-		// Chờ một chút rồi vào fullscreen
-		setTimeout(() => {
-			if (fullscreenEnabled() && !isFullscreen()) {
-				fscreen.requestFullscreen(document.documentElement);
-				console.log('[HappyNewYear] Đã yêu cầu fullscreen');
-			}
-		}, 100);
-
-		// Xóa event listeners sau khi đã request
-		document.removeEventListener('click', requestAutoFullscreen);
-		document.removeEventListener('touchstart', requestAutoFullscreen);
-	}
-
-	// Đăng ký event listeners
-	document.addEventListener('click', requestAutoFullscreen, { once: true });
-	document.addEventListener('touchstart', requestAutoFullscreen, { once: true });
 });
 
 function fullscreenEnabled() {
@@ -614,46 +608,7 @@ function handleStateChange(state, prevState) {
 store.subscribe(handleStateChange);
 
 // ===== LỜI CHÚC BAY TRÊN TRỜI (OVERLAY TRÊN CANVAS) =====
-
-// Mảng câu chúc màu hồng - mặc định, sẽ được ghi đè nếu có custom
-let WISH_MESSAGES = [
-	"Năm mới an khang thịnh vượng",
-	"Năm mới bình an",
-	"Chúc mọi điều ước của em đều trở thành hiện thực ✨",
-	"Chúc gia đình em luôn bình an và hạnh phúc ❤️",
-	"Chúc em luôn khỏe mạnh và tràn đầy năng lượng 💪",
-	"Chúc công việc thuận lợi, thăng tiến không ngừng 🚀",
-	"Chúc em luôn mỉm cười và yêu đời mỗi ngày 😊",
-	"Chúc em gặp nhiều may mắn và niềm vui 🎉",
-];
-
-// Đọc lời chúc custom: ưu tiên URL params > localStorage > mặc định
-(function loadCustomWishes() {
-	try {
-		// 1. Ưu tiên đọc từ URL params
-		const urlData = parseUrlData();
-		if (urlData && urlData.w && Array.isArray(urlData.w) && urlData.w.length > 0) {
-			const validWishes = urlData.w.filter(w => w && w.trim().length > 0);
-			if (validWishes.length > 0) {
-				WISH_MESSAGES = validWishes;
-				console.log('[HappyNewYear] Đã tải ' + validWishes.length + ' lời chúc từ URL');
-				return;
-			}
-		}
-
-		// 2. Fallback: đọc từ localStorage
-		const customWishes = JSON.parse(localStorage.getItem('happynewyear_wishes'));
-		if (customWishes && Array.isArray(customWishes) && customWishes.length > 0) {
-			const validWishes = customWishes.filter(w => w && w.trim().length > 0);
-			if (validWishes.length > 0) {
-				WISH_MESSAGES = validWishes;
-				console.log('[HappyNewYear] Đã tải ' + validWishes.length + ' lời chúc từ localStorage');
-			}
-		}
-	} catch (e) {
-		console.warn('[HappyNewYear] Không thể đọc lời chúc custom:', e);
-	}
-})();
+// (WISH_MESSAGES đã được khai báo ở đầu file và sẽ được ghi đè bởi Firebase)
 
 // Sinh 1 câu chúc bay lên
 function spawnWishMessage() {

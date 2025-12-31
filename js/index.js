@@ -1,3 +1,5 @@
+// ===== BIRTHDAY SECTION =====
+
 // Khôi phục lời chúc từ localStorage hoặc bắt đầu với danh sách trống
 let wishes = JSON.parse(localStorage.getItem('current_wishes')) || [];
 
@@ -45,30 +47,24 @@ function removeWish(idx) {
 
 renderWishes();
 
-// Form submit
-document.getElementById('birthdayForm').addEventListener('submit', function (e) {
+// Form submit - LƯU LÊN FIREBASE
+document.getElementById('birthdayForm').addEventListener('submit', async function (e) {
     e.preventDefault();
+
     const name = document.getElementById('name').value.trim();
     const age = document.getElementById('age').value.trim();
     const date = document.getElementById('date').value.trim();
     const title = document.getElementById('title').value.trim();
 
-    // Debug: In ra console để kiểm tra
-    console.log('Form values:', { name, age, date, title });
-    console.log('Current wishes array:', wishes);
-
     // Lấy lời chúc từ các input hiện tại
     const wishInputs = document.querySelectorAll('#wishesList input');
     const wishesFiltered = [];
-    wishInputs.forEach((input, index) => {
+    wishInputs.forEach((input) => {
         const wish = input.value.trim();
-        console.log(`Wish ${index}:`, wish);
         if (wish.length > 0) {
             wishesFiltered.push(wish);
         }
     });
-
-    console.log('Filtered wishes:', wishesFiltered);
 
     if (!name || !age || !date || !title) {
         alert('Vui lòng nhập đầy đủ thông tin!');
@@ -76,30 +72,57 @@ document.getElementById('birthdayForm').addEventListener('submit', function (e) 
     }
 
     if (wishesFiltered.length === 0) {
-        alert('Vui lòng thêm ít nhất 1 lời chúc! Nhấn nút "Thêm lời chúc" và nhập nội dung.');
+        alert('Vui lòng thêm ít nhất 1 lời chúc!');
         return;
     }
 
     // Tạo shortId
     const shortId = generateShortId();
-    // Lưu vào localStorage đúng cấu trúc home.html
-    const data = { name, age, date, title, wishes: wishesFiltered };
-    console.log('Data to save:', data);
-    localStorage.setItem(`birthday_${shortId}`, JSON.stringify(data));
+    const data = { name, age, date, title, wishes: wishesFiltered, createdAt: Date.now() };
 
-    // Test đọc lại để đảm bảo đã lưu đúng
-    const savedData = JSON.parse(localStorage.getItem(`birthday_${shortId}`));
-    console.log('Saved data verification:', savedData);
+    try {
+        // Lưu lên Firebase
+        await window.db.ref('birthdays/' + shortId).set(data);
+        console.log('[Firebase] Đã lưu birthday:', shortId, data);
 
-    // Xóa lời chúc tạm thời sau khi tạo thành công
-    localStorage.removeItem('current_wishes');
+        // Xóa lời chúc tạm thời
+        localStorage.removeItem('current_wishes');
+        wishes = [];
 
-    // Tạo link
-    const url = `${window.location.origin}${window.location.pathname.replace('/index.html', '')}/home.html?id=${shortId}`;
-    document.getElementById('result-content').innerHTML = `<b>🎉 Link trang sinh nhật đã được tạo:</b><br><br><a href='${url}' target='_blank'>${url}</a><br><br><small>ID: ${shortId}</small>`;
-    document.getElementById('result').style.display = 'block';
-    document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+        // Tạo link
+        const url = `${window.location.origin}${window.location.pathname.replace('/index.html', '')}/home.html?id=${shortId}`;
+
+        document.getElementById('result-content').innerHTML = `
+            <b>🎉 Link trang sinh nhật đã được tạo:</b><br><br>
+            <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
+                <input type="text" id="birthday-url-input" value="${url}" readonly 
+                    style="width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 0.85rem; background: rgba(255,255,255,0.9); color: #333;">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                <button onclick="copyBirthdayUrl()" style="background: #fff; color: #059669; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600;">
+                    <i class="fas fa-copy"></i> Copy Link
+                </button>
+                <a href="${url}" target="_blank" style="background: rgba(255,255,255,0.2); color: #fff; border: 2px solid rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600;">
+                    <i class="fas fa-external-link-alt"></i> Mở thử
+                </a>
+            </div>
+        `;
+        document.getElementById('result').style.display = 'block';
+        document.getElementById('result').scrollIntoView({ behavior: 'smooth' });
+
+    } catch (error) {
+        console.error('[Firebase] Lỗi lưu birthday:', error);
+        alert('Lỗi khi lưu! Vui lòng thử lại.');
+    }
 });
+
+function copyBirthdayUrl() {
+    const input = document.getElementById('birthday-url-input');
+    input.select();
+    navigator.clipboard.writeText(input.value).then(() => {
+        alert('Đã copy link!');
+    });
+}
 
 function generateShortId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -111,27 +134,19 @@ function generateShortId() {
 }
 
 function clearAllData() {
-    if (confirm('Bạn có chắc muốn xóa tất cả dữ liệu (bao gồm lời chúc và các trang sinh nhật đã tạo)?')) {
-        // Xóa tất cả dữ liệu birthday
-        Object.keys(localStorage).forEach(key => {
-            if (key.startsWith('birthday_') || key === 'current_wishes') {
-                localStorage.removeItem(key);
-            }
-        });
-
-        // Reset form
+    if (confirm('Bạn có chắc muốn xóa tất cả dữ liệu?')) {
+        localStorage.removeItem('current_wishes');
+        localStorage.removeItem('happynewyear_wishes');
+        localStorage.removeItem('happynewyear_images');
         document.getElementById('birthdayForm').reset();
         wishes = [];
         renderWishes();
-
-        // Ẩn kết quả
         document.getElementById('result').style.display = 'none';
-
-        alert('Đã xóa tất cả dữ liệu!');
+        alert('Đã xóa dữ liệu local!');
     }
 }
 
-// ===== FIREWORK MANAGEMENT =====
+// ===== FIREWORK SECTION =====
 
 // Load dữ liệu pháo hoa từ localStorage
 let fireworkWishes = JSON.parse(localStorage.getItem('happynewyear_wishes')) || [];
@@ -194,7 +209,6 @@ function renderFireworkImages() {
         const div = document.createElement('div');
         div.className = 'wish-item';
 
-        // Kiểm tra nếu là base64 hay URL
         const isBase64 = img.startsWith('data:image');
         const previewSrc = img;
 
@@ -210,7 +224,6 @@ function renderFireworkImages() {
             input.addEventListener('input', function () {
                 fireworkImages[idx] = this.value;
                 localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
-                // Cập nhật preview
                 div.querySelector('.image-preview').src = this.value;
             });
         }
@@ -234,14 +247,12 @@ function handleImageUpload(event) {
     Array.from(files).forEach(file => {
         const reader = new FileReader();
         reader.onload = function (e) {
-            fireworkImages.push(e.target.result); // base64
+            fireworkImages.push(e.target.result);
             localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
             renderFireworkImages();
         };
         reader.readAsDataURL(file);
     });
-
-    // Reset input để có thể upload lại cùng file
     event.target.value = '';
 }
 
@@ -259,117 +270,88 @@ function clearFireworkImages() {
     }
 }
 
-function saveFireworkData() {
+// LƯU PHÁO HOA LÊN FIREBASE
+async function saveFireworkData() {
     // Lấy lời chúc từ input
     const wishInputs = document.querySelectorAll('#fireworkWishesList input');
     const filteredWishes = [];
     wishInputs.forEach(input => {
         const val = input.value.trim();
-        if (val.length > 0) filteredWishes.push(val);
+        if (val.length > 0 && val !== '[Ảnh đã tải lên]') filteredWishes.push(val);
     });
 
-    // Lấy ảnh từ input (chỉ lấy URL - không lấy base64 vì quá dài cho URL)
+    // Lấy ảnh URL (không lấy base64)
     const filteredImages = fireworkImages.filter(img => {
         if (!img || img.trim().length === 0) return false;
-        // Bỏ qua ảnh base64 vì quá dài cho URL
-        if (img.startsWith('data:image')) {
-            console.warn('Ảnh upload (base64) sẽ không được share qua URL do quá dài');
-            return false;
-        }
+        if (img.startsWith('data:image')) return false; // Bỏ qua base64
         return true;
     });
 
-    // Lưu vào localStorage (cho local preview)
-    localStorage.setItem('happynewyear_wishes', JSON.stringify(filteredWishes));
-    localStorage.setItem('happynewyear_images', JSON.stringify(fireworkImages));
+    if (filteredWishes.length === 0 && filteredImages.length === 0) {
+        alert('Vui lòng thêm ít nhất 1 lời chúc hoặc 1 URL ảnh!');
+        return;
+    }
 
-    // Cập nhật biến local
-    fireworkWishes = filteredWishes;
-
-    // Tạo URL share được
-    const shareUrl = generateFireworkShareUrl(filteredWishes, filteredImages);
-
-    // Hiển thị kết quả với link copy được
-    showShareResult(shareUrl, filteredWishes.length, filteredImages.length);
-}
-
-// Tạo URL với dữ liệu encoded
-function generateFireworkShareUrl(wishes, images) {
+    const shortId = generateShortId();
     const data = {
-        w: wishes,  // wishes
-        i: images   // images (chỉ URL, không base64)
+        wishes: filteredWishes,
+        images: filteredImages,
+        createdAt: Date.now()
     };
 
-    // Encode dữ liệu thành base64
-    const jsonStr = JSON.stringify(data);
-    const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+    try {
+        // Lưu lên Firebase
+        await window.db.ref('fireworks/' + shortId).set(data);
+        console.log('[Firebase] Đã lưu firework:', shortId, data);
 
-    // Tạo URL
-    const baseUrl = window.location.origin + window.location.pathname.replace('/index.html', '');
-    return `${baseUrl}/HappyNewYeah/index.html?data=${encoded}`;
+        // Tạo link share
+        const shareUrl = `${window.location.origin}${window.location.pathname.replace('/index.html', '')}/HappyNewYeah/index.html?id=${shortId}`;
+
+        showFireworkShareResult(shareUrl, filteredWishes.length, filteredImages.length);
+
+    } catch (error) {
+        console.error('[Firebase] Lỗi lưu firework:', error);
+        alert('Lỗi khi lưu! Vui lòng thử lại.');
+    }
 }
 
-// Hiển thị kết quả với link share
-function showShareResult(shareUrl, wishCount, imageCount) {
-    // Tạo hoặc lấy result element
+function showFireworkShareResult(shareUrl, wishCount, imageCount) {
     let resultDiv = document.getElementById('firework-result');
     if (!resultDiv) {
         resultDiv = document.createElement('div');
         resultDiv.id = 'firework-result';
         resultDiv.className = 'result';
         resultDiv.style.marginTop = '20px';
-
-        const fireworkSection = document.querySelector('.firework-section');
-        fireworkSection.appendChild(resultDiv);
+        document.querySelector('.firework-section').appendChild(resultDiv);
     }
 
     resultDiv.style.display = 'block';
     resultDiv.innerHTML = `
-        <h3><i class="fas fa-check-circle"></i> Đã lưu thành công!</h3>
+        <h3><i class="fas fa-check-circle"></i> Đã lưu lên Firebase!</h3>
         <p style="margin: 12px 0; opacity: 0.9;">
-            <strong>${wishCount}</strong> lời chúc • <strong>${imageCount}</strong> hình ảnh URL
-        </p>
-        <p style="margin-bottom: 12px; font-size: 0.9rem; opacity: 0.85;">
-            ${imageCount === 0 ? '⚠️ Lưu ý: Ảnh upload sẽ không share được, chỉ URL ảnh mới share được' : ''}
+            <strong>${wishCount}</strong> lời chúc • <strong>${imageCount}</strong> hình ảnh
         </p>
         <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
-            <input type="text" id="share-url-input" value="${shareUrl}" readonly 
+            <input type="text" id="firework-share-url" value="${shareUrl}" readonly 
                 style="width: 100%; padding: 10px; border: none; border-radius: 8px; font-size: 0.85rem; background: rgba(255,255,255,0.9); color: #333;">
         </div>
         <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-            <button onclick="copyShareUrl()" style="background: #fff; color: #059669; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <button onclick="copyFireworkUrl()" style="background: #fff; color: #059669; border: none; padding: 10px 20px; border-radius: 10px; cursor: pointer; font-weight: 600;">
                 <i class="fas fa-copy"></i> Copy Link
             </button>
-            <a href="${shareUrl}" target="_blank" style="background: rgba(255,255,255,0.2); color: #fff; border: 2px solid rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; display: flex; align-items: center; gap: 8px;">
+            <a href="${shareUrl}" target="_blank" style="background: rgba(255,255,255,0.2); color: #fff; border: 2px solid rgba(255,255,255,0.5); padding: 10px 20px; border-radius: 10px; text-decoration: none; font-weight: 600;">
                 <i class="fas fa-external-link-alt"></i> Mở thử
             </a>
         </div>
     `;
-
     resultDiv.scrollIntoView({ behavior: 'smooth' });
 }
 
-// Copy URL vào clipboard
-function copyShareUrl() {
-    const input = document.getElementById('share-url-input');
+function copyFireworkUrl() {
+    const input = document.getElementById('firework-share-url');
     input.select();
-    input.setSelectionRange(0, 99999);
-
     navigator.clipboard.writeText(input.value).then(() => {
-        // Thay đổi text nút tạm thời
-        const btn = event.target.closest('button');
-        const originalHTML = btn.innerHTML;
-        btn.innerHTML = '<i class="fas fa-check"></i> Đã copy!';
-        btn.style.background = '#10b981';
-        btn.style.color = '#fff';
-
-        setTimeout(() => {
-            btn.innerHTML = originalHTML;
-            btn.style.background = '#fff';
-            btn.style.color = '#059669';
-        }, 2000);
-    }).catch(err => {
-        alert('Không thể copy. Vui lòng copy thủ công.');
+        alert('Đã copy link!');
     });
 }
 
@@ -378,4 +360,3 @@ document.addEventListener('DOMContentLoaded', function () {
     renderFireworkWishes();
     renderFireworkImages();
 });
-
