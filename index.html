@@ -56,6 +56,34 @@
                 </div>
             </div>
 
+            <!-- Video Catbox.moe -->
+            <div class="wishes-section">
+                <div class="wishes-header">
+                    <h3><i class="fas fa-video"></i> Video pháo hoa (Catbox.moe)</h3>
+                    <button type="button" onclick="clearFireworkVideos()" class="clear-btn">
+                        <i class="fas fa-eraser"></i> Xóa hết
+                    </button>
+                </div>
+                <div class="image-guide">
+                    <p><i class="fas fa-info-circle"></i> <strong>Hướng dẫn:</strong></p>
+                    <ol>
+                        <li>Truy cập <a href="https://catbox.moe/" target="_blank">catbox.moe</a></li>
+                        <li>Upload video → Copy <strong>"Link"</strong> (ví dụ: https://files.catbox.moe/xxxxx.mp4)</li>
+                        <li>Dán link vào ô bên dưới</li>
+                    </ol>
+                    <p style="margin-top: 8px; color: #f59e0b; font-size: 0.9rem;">
+                        <i class="fas fa-exclamation-triangle"></i> <strong>Lưu ý:</strong> Chỉ hỗ trợ link từ
+                        Catbox.moe
+                    </p>
+                </div>
+                <div id="fireworkVideosList" class="images-list"></div>
+                <div class="image-input-group">
+                    <button type="button" class="add-wish-btn" onclick="addFireworkVideoUrl()">
+                        <i class="fas fa-link"></i> Thêm URL video
+                    </button>
+                </div>
+            </div>
+
             <button type="button" class="submit-btn firework-btn" onclick="saveFireworkData()">
                 <i class="fas fa-save"></i> Lưu Cài Đặt Pháo Hoa
             </button>

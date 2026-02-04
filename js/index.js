@@ -146,6 +146,7 @@ function clearAllData() {
 // Load dữ liệu pháo hoa từ localStorage
 let fireworkWishes = JSON.parse(localStorage.getItem('happynewyear_wishes')) || [];
 let fireworkImages = JSON.parse(localStorage.getItem('happynewyear_images')) || [];
+let fireworkVideos = JSON.parse(localStorage.getItem('happynewyear_videos')) || [];
 
 // Render danh sách lời chúc pháo hoa
 function renderFireworkWishes() {
@@ -288,6 +289,67 @@ function clearFireworkImages() {
     }
 }
 
+// ===== VIDEO FUNCTIONS =====
+
+// Render danh sách video pháo hoa
+function renderFireworkVideos() {
+    const list = document.getElementById('fireworkVideosList');
+    if (!list) return;
+    list.innerHTML = '';
+
+    fireworkVideos.forEach((videoUrl, idx) => {
+        const div = document.createElement('div');
+        div.className = 'wish-item';
+
+        // Kiểm tra xem có phải link Catbox.moe không
+        const isCatbox = videoUrl.includes('catbox.moe') || videoUrl.includes('files.catbox.moe');
+        const warningIcon = !isCatbox && videoUrl.length > 0 ? '<i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 4px;" title="Không phải link Catbox.moe"></i>' : '';
+
+        div.innerHTML = `
+            <video class="image-preview" style="width: 60px; height: 60px; object-fit: cover; border-radius: 8px;" ${videoUrl ? `src="${videoUrl}"` : ''} muted></video>
+            ${warningIcon}
+            <input type="text" class="image-url-input" value="${videoUrl}" data-index="${idx}" placeholder="https://files.catbox.moe/xxxxx.mp4">
+            <button type="button" class="remove-wish-btn" onclick="removeFireworkVideo(${idx})"><i class='fas fa-trash'></i></button>
+        `;
+        list.appendChild(div);
+
+        const input = div.querySelector('input');
+        const video = div.querySelector('video');
+
+        input.addEventListener('input', function () {
+            fireworkVideos[idx] = this.value;
+            localStorage.setItem('happynewyear_videos', JSON.stringify(fireworkVideos));
+            if (this.value) {
+                video.src = this.value;
+            }
+        });
+    });
+}
+
+function addFireworkVideoUrl() {
+    fireworkVideos.push("");
+    localStorage.setItem('happynewyear_videos', JSON.stringify(fireworkVideos));
+    renderFireworkVideos();
+    setTimeout(() => {
+        const inputs = document.querySelectorAll('#fireworkVideosList .image-url-input');
+        if (inputs.length > 0) inputs[inputs.length - 1].focus();
+    }, 100);
+}
+
+function removeFireworkVideo(idx) {
+    fireworkVideos.splice(idx, 1);
+    localStorage.setItem('happynewyear_videos', JSON.stringify(fireworkVideos));
+    renderFireworkVideos();
+}
+
+function clearFireworkVideos() {
+    if (confirm('Xóa tất cả video pháo hoa?')) {
+        fireworkVideos = [];
+        localStorage.setItem('happynewyear_videos', JSON.stringify(fireworkVideos));
+        renderFireworkVideos();
+    }
+}
+
 // LƯU PHÁO HOA LÊN FIREBASE
 async function saveFireworkData() {
     // Lấy lời chúc từ input
@@ -307,8 +369,16 @@ async function saveFireworkData() {
         })
         .map(img => convertToDirectImageUrl(img)); // Chuyển đổi link Google Drive
 
-    if (filteredWishes.length === 0 && filteredImages.length === 0) {
-        alert('Vui lòng thêm ít nhất 1 lời chúc hoặc 1 URL ảnh!');
+    // Lấy video URL (chỉ lấy link Catbox.moe)
+    const filteredVideos = fireworkVideos
+        .filter(video => {
+            if (!video || video.trim().length === 0) return false;
+            // Chỉ chấp nhận link Catbox.moe
+            return video.includes('catbox.moe') || video.includes('files.catbox.moe');
+        });
+
+    if (filteredWishes.length === 0 && filteredImages.length === 0 && filteredVideos.length === 0) {
+        alert('Vui lòng thêm ít nhất 1 lời chúc, 1 URL ảnh, hoặc 1 URL video!');
         return;
     }
 
@@ -316,6 +386,7 @@ async function saveFireworkData() {
     const data = {
         wishes: filteredWishes,
         images: filteredImages,
+        videos: filteredVideos,
         createdAt: Date.now()
     };
 
@@ -327,7 +398,7 @@ async function saveFireworkData() {
         // Tạo link share
         const shareUrl = `${window.location.origin}${window.location.pathname.replace('/index.html', '')}/HappyNewYeah/index.html?id=${shortId}`;
 
-        showFireworkShareResult(shareUrl, filteredWishes.length, filteredImages.length);
+        showFireworkShareResult(shareUrl, filteredWishes.length, filteredImages.length, filteredVideos.length);
 
     } catch (error) {
         console.error('[Firebase] Lỗi lưu firework:', error);
@@ -335,7 +406,7 @@ async function saveFireworkData() {
     }
 }
 
-function showFireworkShareResult(shareUrl, wishCount, imageCount) {
+function showFireworkShareResult(shareUrl, wishCount, imageCount, videoCount = 0) {
     let resultDiv = document.getElementById('firework-result');
     if (!resultDiv) {
         resultDiv = document.createElement('div');
@@ -345,11 +416,18 @@ function showFireworkShareResult(shareUrl, wishCount, imageCount) {
         document.querySelector('.firework-section').appendChild(resultDiv);
     }
 
+    // Tạo text hiển thị số lượng
+    const counts = [];
+    if (wishCount > 0) counts.push(`<strong>${wishCount}</strong> lời chúc`);
+    if (imageCount > 0) counts.push(`<strong>${imageCount}</strong> hình ảnh`);
+    if (videoCount > 0) counts.push(`<strong>${videoCount}</strong> video`);
+    const countsText = counts.join(' • ');
+
     resultDiv.style.display = 'block';
     resultDiv.innerHTML = `
         <h3><i class="fas fa-check-circle"></i> Đã lưu lên Firebase!</h3>
         <p style="margin: 12px 0; opacity: 0.9;">
-            <strong>${wishCount}</strong> lời chúc • <strong>${imageCount}</strong> hình ảnh
+            ${countsText}
         </p>
         <div style="background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; margin-bottom: 12px;">
             <input type="text" id="firework-share-url" value="${shareUrl}" readonly 
@@ -379,4 +457,5 @@ function copyFireworkUrl() {
 document.addEventListener('DOMContentLoaded', function () {
     renderFireworkWishes();
     renderFireworkImages();
+    renderFireworkVideos();
 });

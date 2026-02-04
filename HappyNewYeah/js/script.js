@@ -89,6 +89,9 @@ let WISH_MESSAGES = [
 	"Hạnh phúc tràn đầy! 😊",
 ];
 
+// Video từ Catbox.moe - sẽ được ghi đè nếu có dữ liệu từ Firebase
+let videoSources = [];
+
 // Flag để biết đã load xong Firebase data chưa
 let firebaseDataLoaded = false;
 
@@ -125,6 +128,12 @@ async function loadFireworkDataFromFirebase() {
 		if (data.images && Array.isArray(data.images) && data.images.length > 0) {
 			imageSources = data.images;
 			console.log('[HappyNewYear] Đã cập nhật', data.images.length, 'ảnh từ Firebase');
+		}
+
+		// Ghi đè video nếu có
+		if (data.videos && Array.isArray(data.videos) && data.videos.length > 0) {
+			videoSources = data.videos;
+			console.log('[HappyNewYear] Đã cập nhật', data.videos.length, 'video từ Firebase');
 		}
 
 		firebaseDataLoaded = true;
@@ -875,6 +884,140 @@ function spawnWishImage() {
 	}, (duration + 0.5) * 1000);
 }
 
+// Sinh 1 video bay lên cùng câu chúc
+function spawnWishVideo() {
+	const layer = appNodes.wishesLayer;
+	if (!layer) return;
+
+	// Kiểm tra xem có video đã load chưa
+	if (!videoSources.length) return;
+
+	// Random chọn 1 video từ mảng
+	const videoUrl = videoSources[(Math.random() * videoSources.length) | 0];
+	if (!videoUrl) return;
+
+	// Wrapper chịu trách nhiệm animation bay
+	const wrapper = document.createElement("div");
+	wrapper.className = "wish-video-wrapper wish-animate";
+
+	// Tạo thẻ video
+	const videoElement = document.createElement("video");
+	videoElement.className = "wish-video";
+	videoElement.src = videoUrl;
+	videoElement.autoplay = true;
+	videoElement.loop = true;
+	videoElement.muted = true;
+	videoElement.playsInline = true;
+	videoElement.crossOrigin = "anonymous";
+
+	// Bắt đầu phát video
+	videoElement.play().catch(e => {
+		console.warn('[HappyNewYear] Không thể tự động phát video:', e);
+	});
+
+	wrapper.appendChild(videoElement);
+
+	// Vị trí ngang ngẫu nhiên - responsive cho mobile
+	const isMobile = window.innerWidth <= 768;
+	const minX = isMobile ? 5 : 10;
+	const maxX = isMobile ? 95 : 90;
+	const leftPercent = minX + Math.random() * (maxX - minX);
+	wrapper.style.left = leftPercent + "%";
+
+	// Thời gian bay (6–10s) - tương tự câu chúc
+	const duration = 6 + Math.random() * 4;
+	wrapper.style.animationDuration = duration + "s";
+
+	// Cho phép thao tác tay trên video - xoay/thu phóng toàn bộ không gian (3D camera)
+	videoElement.addEventListener("pointerdown", (e) => {
+		if (isDraggingWish) return;
+		isDraggingWish = true;
+		dragStartX = e.clientX;
+		dragStartY = e.clientY;
+		dragStartRotationX = globalWishRotationX;
+		dragStartRotationY = globalWishRotationY;
+		dragStartScale = globalWishScale;
+
+		velocityX = 0;
+		velocityY = 0;
+		lastMoveX = e.clientX;
+		lastMoveY = e.clientY;
+		lastMoveTime = Date.now();
+
+		if (appNodes.wishesLayer) {
+			appNodes.wishesLayer.classList.add('dragging');
+		}
+
+		videoElement.setPointerCapture(e.pointerId);
+		e.stopPropagation();
+		e.preventDefault();
+	});
+
+	videoElement.addEventListener("pointermove", (e) => {
+		if (!isDraggingWish) return;
+
+		const currentTime = Date.now();
+		const dx = e.clientX - dragStartX;
+		const dy = e.clientY - dragStartY;
+
+		if (lastMoveTime > 0) {
+			const deltaTime = Math.max(1, currentTime - lastMoveTime);
+			const deltaX = e.clientX - lastMoveX;
+			const deltaY = e.clientY - lastMoveY;
+
+			velocityX = (-deltaY * 0.3) * (16 / deltaTime);
+			velocityY = (deltaX * 0.3) * (16 / deltaTime);
+		}
+
+		lastMoveX = e.clientX;
+		lastMoveY = e.clientY;
+		lastMoveTime = currentTime;
+
+		globalWishRotationY = dragStartRotationY + dx * 0.3;
+		globalWishRotationX = Math.max(-60, Math.min(60, dragStartRotationX - dy * 0.3));
+		globalWishScale = Math.max(0.5, Math.min(2, dragStartScale + dy * -0.002));
+
+		updateGlobalWishTransform();
+	});
+
+	function endDrag(e) {
+		if (!isDraggingWish) return;
+		isDraggingWish = false;
+
+		if (appNodes.wishesLayer) {
+			appNodes.wishesLayer.classList.remove('dragging');
+		}
+
+		if (Math.abs(velocityX) > 0.1 || Math.abs(velocityY) > 0.1) {
+			dampingAnimation();
+		} else {
+			velocityX = 0;
+			velocityY = 0;
+		}
+
+		if (e.pointerId != null) {
+			try {
+				videoElement.releasePointerCapture(e.pointerId);
+			} catch (err) { }
+		}
+	}
+
+	videoElement.addEventListener("pointerup", endDrag);
+	videoElement.addEventListener("pointercancel", endDrag);
+
+	layer.appendChild(wrapper);
+
+	// Xóa DOM sau khi bay xong
+	setTimeout(() => {
+		if (wrapper.parentNode === layer) {
+			// Dừng video trước khi xóa để giải phóng bộ nhớ
+			videoElement.pause();
+			videoElement.src = '';
+			layer.removeChild(wrapper);
+		}
+	}, (duration + 0.5) * 1000);
+}
+
 let wishesStarted = false;
 let wishesIntervalId = null;
 let wishesStopped = false; // Trạng thái dừng tạo câu chúc mới
@@ -951,7 +1094,7 @@ function dampingAnimation() {
 // Kiểm tra xem có câu chúc đang bay trên màn hình không
 function hasActiveWishes() {
 	if (!appNodes.wishesLayer) return false;
-	const wishWrappers = appNodes.wishesLayer.querySelectorAll('.wish-wrapper, .wish-image-wrapper');
+	const wishWrappers = appNodes.wishesLayer.querySelectorAll('.wish-wrapper, .wish-image-wrapper, .wish-video-wrapper');
 	return wishWrappers.length > 0;
 }
 
@@ -979,10 +1122,16 @@ function startWishesLoop() {
 	const initialCount = isMobile ? 3 : 4; // Mobile: ít hơn một chút
 	for (let i = 0; i < initialCount; i++) {
 		setTimeout(spawnWishMessage, i * initialDelay);
-		// Random có ảnh bay lên cùng không (30% cơ hội)
-		if (Math.random() < 0.3 && loadedImages.length > 0) {
+		// Random có ảnh hoặc video bay lên cùng không
+		const rand = Math.random();
+		if (rand < 0.3 && videoSources.length > 0) {
+			// 30% cơ hội xuất hiện video
+			setTimeout(spawnWishVideo, i * initialDelay + 200);
+		} else if (rand < 0.6 && loadedImages.length > 0) {
+			// 30% cơ hội xuất hiện ảnh
 			setTimeout(spawnWishImage, i * initialDelay + 200);
 		}
+		// 40% còn lại chỉ có text
 	}
 
 	// Sau đó bắn đều 1–3 câu mỗi ~1.4s (hoặc 1.2s trên mobile)
@@ -997,10 +1146,16 @@ function startWishesLoop() {
 			: 1 + ((Math.random() * 3) | 0); // Desktop: 1-3 câu
 		for (let i = 0; i < count; i++) {
 			setTimeout(spawnWishMessage, i * betweenDelay);
-			// Random có ảnh bay lên cùng không (30% cơ hội)
-			if (Math.random() < 0.3 && loadedImages.length > 0) {
+			// Random có ảnh hoặc video bay lên cùng không
+			const rand = Math.random();
+			if (rand < 0.3 && videoSources.length > 0) {
+				// 30% cơ hội xuất hiện video
+				setTimeout(spawnWishVideo, i * betweenDelay + 200);
+			} else if (rand < 0.6 && loadedImages.length > 0) {
+				// 30% cơ hội xuất hiện ảnh
 				setTimeout(spawnWishImage, i * betweenDelay + 200);
 			}
+			// 40% còn lại chỉ có text
 		}
 	}, intervalDelay);
 }
